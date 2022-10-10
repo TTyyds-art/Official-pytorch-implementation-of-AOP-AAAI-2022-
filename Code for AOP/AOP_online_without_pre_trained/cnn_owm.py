@@ -7,7 +7,7 @@ def compute_conv_output_size(Lin,kernel_size,stride=1,padding=0,dilation=1):
 
 class Net(torch.nn.Module):
 
-    def __init__(self, inputsize,last_dim=4096,simclr_dim=32*4,num_class=10):
+    def __init__(self, inputsize,last_dim=4096,simclr_dim=32*4, num_class=10):
         super(Net, self).__init__()
         ncha, size, _ = inputsize
         self.relu = torch.nn.ReLU(inplace=True)
@@ -68,7 +68,7 @@ class Net(torch.nn.Module):
     def forward(self, h,num,classify=True,shift=None,simclr=None):
         h_list = []
 
-
+        # h is equal to x： input
         h_list.append(torch.mean(h, 0, True))
         #h_list.append(h[num].unsqueeze(0))
         h = self.relu(self.fc1(h))

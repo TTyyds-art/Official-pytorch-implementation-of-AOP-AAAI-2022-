@@ -44,13 +44,13 @@ class Appr(object):
         #     lr = self.lr
         lr = self.lr
         lr_owm = self.lr
-        fc1_params = list(map(id, self.model.fc1.parameters()))
+        fc1_params = list(map(id, self.model.fc1.parameters()))    # 所有的model都可以这样拿到参数吗?是在自定义类中起得名字
         fc2_params = list(map(id, self.model.fc2.parameters()))
         fc3_params = list(map(id, self.model.fc3.parameters()))
         base_params = filter(lambda p: id(p) not in fc1_params + fc2_params + fc3_params,
                              self.model.parameters())
-        optimizer = torch.optim.SGD([{'params': base_params},
-                                     {'params': self.model.fc1.parameters(), 'lr': lr_owm},
+        optimizer = torch.optim.SGD([{'params': base_params},                                # 这样设置的目的是?
+                                     {'params': self.model.fc1.parameters(), 'lr': lr_owm},  # 只是对不同层设置不同学习率的一种通用方法
                                      {'params': self.model.fc2.parameters(), 'lr': lr_owm},
                                      {'params': self.model.fc3.parameters(), 'lr': lr_owm}
                                      ], lr=lr, momentum=0.9)
@@ -61,10 +61,10 @@ class Appr(object):
 
         best_loss = np.inf
         best_acc = 0
-        best_model = utils.get_model(self.model)
+        best_model = utils.get_model(self.model)    # deepcopy the model 对模型深度复制
         lr = self.lr
         # patience = self.lr_patience
-        self.optimizer = self._get_optimizer(t, lr)
+        self.optimizer = self._get_optimizer(t, lr)   # 传入的参数没有意义，是无用的
         nepochs = self.nepochs
         self.loss = 0
         test_max = 0
@@ -76,8 +76,9 @@ class Appr(object):
 
                 self.train_epoch(xtrain, ytrain, cur_epoch=e, nepoch=nepochs, task_id=t)
 
-                if (e+1) % 5  !=0:
+                if (e+1) % 5  !=0:    # 有趣
                    continue
+                ## training data evalutate
                 train_loss, train_acc = self.eval(xtrain, ytrain)
                 loss_his.append(train_loss)
                 print('| [{:d}/10], Epoch {:d}/{:d}, | Train: loss={:.3f}, acc={:2.2f}% |'.format(t + 1, e + 1,
@@ -135,7 +136,7 @@ class Appr(object):
             #  print("b")
             #  output1, h_list1, x_list1 = self.model.forward(self.simclr_aug(images))
             feature, x_list, num = self.model.conv_feature(images)
-            output, h_list = self.model.forward(feature, num)
+            output, h_list = self.model.forward(feature)
 
             loss = self.ce(output,
                            targets)  # +1-pos_mean+0.5*neg_mean#+loss_sim1#F.mse_loss(output[:images.shape[0]],output[images.shape[0]:])
@@ -177,7 +178,7 @@ class Appr(object):
                             r = x[:, :, i * S: i * S + HH, j * S: j * S + WW].contiguous().view(1, -1).data
                             # r = r[:, range(r.shape[1] - 1, -1, -1)]
                             k = torch.mm(p.data, torch.t(r))
-                            p.sub_(torch.mm(k, torch.t(k)) / (alpha + torch.mm(r, k)))
+                            p.sub_(torch.mm(k, torch.t(k)) / (alpha + torch.mm(r, k)))  # sub_ 就是自减的意思
 
                     w.grad.data = torch.mm(w.grad.data.view(F, -1), torch.t(p.data)).view_as(w)
 
@@ -185,7 +186,7 @@ class Appr(object):
 
                     r = x.data
                     k = torch.mm(p.data, torch.t(r))
-                    p.sub_(torch.mm(k, torch.t(k)) / (alpha + torch.mm(r, k)))
+                    p.sub_(torch.mm(k, torch.t(k)) / (alpha + torch.mm(r, k)))   # 这里面的就是 Q
 
                     w.grad.data = torch.mm(w.grad.data, torch.t(p.data))
 
